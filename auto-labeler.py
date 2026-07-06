@@ -35,17 +35,27 @@ for item in context:
     pod_name = obj["metadata"]["name"]
     print("Processing {}...".format(pod_name))
 
-    node_info = json.loads(
-        subprocess.check_output(
-            ["kubectl", "get", "node", node_name, "-o", "json"]))
+    try:
+        node_info = json.loads(
+            subprocess.check_output(
+                ["kubectl", "get", "node", node_name, "-o", "json"]))
+    except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
+        print("ERROR: Failed to get node info for {}: {}".format(node_name, e))
+        continue
 
     node_labels = node_info["metadata"]["labels"]
     copy_keys = COPY_LABELS.split(",")
 
-    final_labels = []
+    final_labels = ["auto-labeler.maxsum.io/labeled="]
     for key in [key for key in node_labels.keys() if key in copy_keys]:
         final_labels.append("{}={}".format(key, node_labels[key]))
-    cmd = ["kubectl", "label", "pods", pod_name,  "-n", namespace] + final_labels
+    cmd = ["kubectl", "label", "pods", pod_name, "-n", namespace, "--overwrite"] + final_labels
     print(cmd)
-    print(subprocess.check_output(cmd))
+    try:
+        print(subprocess.check_output(cmd))
+    except subprocess.CalledProcessError as e:
+        print("ERROR: Failed to label pod {}: {}".format(pod_name, e))
+        # Don't raise — let the hook continue to next pod instead of retrying forever
+        continue
+
 sys.exit(0)
