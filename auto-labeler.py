@@ -4,7 +4,6 @@ import os
 import sys
 import json
 import subprocess
-import traceback
 
 parser = argparse.ArgumentParser(description="Pod hook for Shell-Operator")
 parser.add_argument("--config", action="store_true")
@@ -44,10 +43,13 @@ for item in context:
         try:
             node_name = obj["spec"]["nodeName"]
         except KeyError:
-            # Dump the problematic object for debugging
-            print("DEBUG: obj type={}, keys={}".format(type(obj).__name__, list(obj.keys()) if isinstance(obj, dict) else "N/A"))
-            print("DEBUG: obj["metadata"]["name"]={}".format(obj.get("metadata", {}).get("name", "N/A")))
-            print("DEBUG: full obj: {}".format(json.dumps(obj, indent=2, default=str)[:2000]))
+            meta = obj.get("metadata", {})
+            pod_name = meta.get("name", "N/A")
+            obj_keys = list(obj.keys())
+            spec_keys = list(obj.get("spec", {}).keys()) if isinstance(obj.get("spec"), dict) else ["NOT_A_DICT"]
+            print("DEBUG: pod={}, obj_keys={}, spec_keys={}, spec_type={}".format(
+                pod_name, obj_keys, spec_keys, type(obj.get("spec")).__name__))
+            print("DEBUG: full_obj=" + json.dumps(obj, default=str)[:3000])
             failed += 1
             continue
 
