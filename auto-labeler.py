@@ -4,6 +4,7 @@ import os
 import sys
 import json
 import subprocess
+import traceback
 
 parser = argparse.ArgumentParser(description="Pod hook for Shell-Operator")
 parser.add_argument("--config", action="store_true")
@@ -26,8 +27,6 @@ with open(CONTEXT_FILE) as context_hdl:
 failed = 0
 
 for item in context:
-    # Synchronization events: objects[] array with {object, filterResult}
-    # Regular events: object is pod JSON (or bare string if jqFilter active)
     event_type = item.get("type", "")
 
     if event_type == "Synchronization":
@@ -39,11 +38,19 @@ for item in context:
         obj = entry.get("object", entry) if isinstance(entry, dict) else entry
 
         if isinstance(obj, str):
-            # jqFilter stripped object to bare node name; skip
             print("SKIP: jqFilter left only node={}".format(obj))
             continue
 
-        node_name = obj["spec"]["nodeName"]
+        try:
+            node_name = obj["spec"]["nodeName"]
+        except KeyError:
+            # Dump the problematic object for debugging
+            print("DEBUG: obj type={}, keys={}".format(type(obj).__name__, list(obj.keys()) if isinstance(obj, dict) else "N/A"))
+            print("DEBUG: obj["metadata"]["name"]={}".format(obj.get("metadata", {}).get("name", "N/A")))
+            print("DEBUG: full obj: {}".format(json.dumps(obj, indent=2, default=str)[:2000]))
+            failed += 1
+            continue
+
         namespace = obj["metadata"]["namespace"]
         pod_name = obj["metadata"]["name"]
         print("Processing {}...".format(pod_name))
