@@ -31,10 +31,19 @@ failed = 0
 for item in context:
     obj = item["object"]
 
-    node_name = obj["spec"]["nodeName"]
-    namespace = obj["metadata"]["namespace"]
-    pod_name = obj["metadata"]["name"]
-    print("Processing {}...".format(pod_name))
+    # jqFilter: .spec.nodeName means obj is a bare node name string,
+    # not a full pod object. Use obj directly as the node name.
+    if isinstance(obj, dict) and "spec" in obj:
+        node_name = obj["spec"]["nodeName"]
+        namespace = obj["metadata"]["namespace"]
+        pod_name = obj["metadata"]["name"]
+    else:
+        # jqFilter stripped the object: find pod info from other context fields
+        node_name = str(obj)
+        pod_name = item.get("filterResult", item.get("object", {}).get("metadata", {}).get("name", node_name))
+        namespace = item.get("resourceNamespace", item.get("object", {}).get("metadata", {}).get("namespace", "default"))
+
+    print("Processing node={} pod={}/{}...".format(node_name, namespace, pod_name))
 
     try:
         node_info = json.loads(
