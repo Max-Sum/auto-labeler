@@ -5,8 +5,8 @@ import sys
 import json
 import subprocess
 
-parser = argparse.ArgumentParser(description='''Pod hook for Shell-Operator''')
-parser.add_argument('''--config''', action='''store_true''')
+parser = argparse.ArgumentParser(description="Pod hook for Shell-Operator")
+parser.add_argument("--config", action="store_true")
 
 args = parser.parse_args()
 CONFIG_FILE = os.getenv("CONFIG_FILE", "/etc/auto-labeler/config.yaml")
@@ -31,19 +31,17 @@ failed = 0
 for item in context:
     obj = item["object"]
 
-    # jqFilter: .spec.nodeName means obj is a bare node name string,
-    # not a full pod object. Use obj directly as the node name.
-    if isinstance(obj, dict) and "spec" in obj:
-        node_name = obj["spec"]["nodeName"]
-        namespace = obj["metadata"]["namespace"]
-        pod_name = obj["metadata"]["name"]
-    else:
-        # jqFilter stripped the object: find pod info from other context fields
-        node_name = str(obj)
-        pod_name = item.get("filterResult", item.get("object", {}).get("metadata", {}).get("name", node_name))
-        namespace = item.get("resourceNamespace", item.get("object", {}).get("metadata", {}).get("namespace", "default"))
+    # jqFilter stripped the object: obj is bare node name string instead of pod JSON
+    if isinstance(obj, str):
+        node_name = obj
+        # Cannot determine pod name from filtered context; skip
+        print("SKIP: jqFilter stripped pod info, only have node={}".format(node_name))
+        continue
 
-    print("Processing node={} pod={}/{}...".format(node_name, namespace, pod_name))
+    node_name = obj["spec"]["nodeName"]
+    namespace = obj["metadata"]["namespace"]
+    pod_name = obj["metadata"]["name"]
+    print("Processing {}...".format(pod_name))
 
     try:
         node_info = json.loads(
@@ -57,7 +55,7 @@ for item in context:
     node_labels = node_info["metadata"]["labels"]
     copy_keys = COPY_LABELS.split(",")
 
-    final_labels = ["auto-labeler.maxsum.io/labeled=""]
+    final_labels = ["auto-labeler.maxsum.io/labeled="]
     for key in [key for key in node_labels.keys() if key in copy_keys]:
         final_labels.append("{}={}".format(key, node_labels[key]))
     cmd = ["kubectl", "label", "pods", pod_name, "-n", namespace, "--overwrite"] + final_labels
