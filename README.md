@@ -6,9 +6,15 @@ Built with [Shell Operator](https://github.com/flant/shell-operator)
 
 ### Docker Image
 
-1. Copy `auto-labeler.py` into `docker`
+Build locally from the repository root:
 
-1. docker build & push
+```shell
+docker build -t auto-labeler:local .
+```
+
+Pushes to `main` and version tags publish multi-platform images to
+`ghcr.io/max-sum/auto-labeler` through GitHub Actions. Pull requests build the
+image without publishing it. See [INSTALL.md](INSTALL.md) for deployment.
 
 ### RBAC
 

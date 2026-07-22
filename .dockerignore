@@ -1,0 +1,10 @@
+.git
+.github
+__pycache__
+*.pyc
+*.md
+config.yaml
+kubernetes
+sample*.json
+sample-workload.yaml
+test_*.py

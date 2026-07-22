@@ -16,7 +16,7 @@ spec:
     spec:
       serviceAccountName: monitor-pods-acc
       containers:
-      - image: gzmaxsum/auto-labeler
+      - image: ghcr.io/max-sum/auto-labeler:latest
         imagePullPolicy: Always
         name: auto-labeler
         env:
@@ -31,5 +31,3 @@ spec:
       - configMap:
           name: auto-labeler-config
         name: operator-config
-      nodeSelector:
-        kubernetes.io/arch: amd64
