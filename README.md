@@ -12,7 +12,7 @@ Build locally from the repository root:
 docker build -t auto-labeler:local .
 ```
 
-Pushes to `main` and version tags publish multi-platform images to
+Pushes to `main` and version tags publish `linux/amd64` images to
 `ghcr.io/max-sum/auto-labeler` through GitHub Actions. Pull requests build the
 image without publishing it. See [INSTALL.md](INSTALL.md) for deployment.
 

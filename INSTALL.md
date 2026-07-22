@@ -2,7 +2,8 @@
 
 The published image is `ghcr.io/max-sum/auto-labeler:latest`. The GitHub
 Container Registry package must be public, or the cluster needs an image pull
-secret with access to it.
+secret with access to it. The image currently targets `linux/amd64`; the
+Deployment includes a matching node selector.
 
 Install the RBAC rules, hook configuration, and operator into `kube-system`:
 

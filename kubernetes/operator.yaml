@@ -31,3 +31,5 @@ spec:
       - configMap:
           name: auto-labeler-config
         name: operator-config
+      nodeSelector:
+        kubernetes.io/arch: amd64
