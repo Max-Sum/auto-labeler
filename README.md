@@ -92,7 +92,14 @@ spec:
 ### Env
 
 - **COPY_LABELS**：Labels on node will be copied to the pods.(default: `node-dc,node-rack,node-name`)
+- **KUBECTL_TIMEOUT_SECONDS**: Maximum duration of each Kubernetes API operation (default: `10`).
+
+Pods selected by `node-label` are marked with
+`auto-labeler.maxsum.io/labeled`. Stale/deleted Pod events and temporarily
+unscheduled Pods are skipped without blocking Shell-Operator's serial queue.
+The binding resynchronizes every 10 minutes to recover from transient API
+failures.
 
 ### config.yaml
 
-- `matchExpressions`: Select specified pods to be labeled.  
+- `matchExpressions`: Select specified pods to be labeled.

@@ -16,9 +16,14 @@ spec:
     spec:
       serviceAccountName: monitor-pods-acc
       containers:
-      - image: dustise/auto-labeler:v0.0.1
-        imagePullPolicy: IfNotPresent
+      - image: gzmaxsum/auto-labeler
+        imagePullPolicy: Always
         name: auto-labeler
+        env:
+        - name: COPY_LABELS
+          value: "topology.kubernetes.io/region,topology.kubernetes.io/zone,geo.maxsum.io/city,geo.maxsum.io/country,geo.maxsum.io/subcontinent,geo.maxsum.io/continent"
+        - name: KUBECTL_TIMEOUT_SECONDS
+          value: "10"
         volumeMounts:
         - mountPath: /etc/auto-labeler/
           name: operator-config
@@ -26,3 +31,5 @@ spec:
       - configMap:
           name: auto-labeler-config
         name: operator-config
+      nodeSelector:
+        kubernetes.io/arch: amd64

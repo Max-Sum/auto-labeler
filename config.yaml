@@ -1,10 +1,12 @@
 configVersion: v1
 kubernetes:
-- apiVersion: v1
+- name: pods-to-label
+  apiVersion: v1
   kind: Pod
-  executeHookOnEvent: ["Modified"]
+  executeHookOnEvent: ["Added", "Modified"]
+  resynchronizationPeriod: "10m"
+  allowFailure: true
   labelSelector:
     matchExpressions:
-    - {key: node-dc, operator: DoesNotExist}
+    - {key: auto-labeler.maxsum.io/labeled, operator: DoesNotExist}
     - {key: node-label, operator: Exists}
-  jqFilter: .spec.nodeName
